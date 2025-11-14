@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>K线挑战</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, sans-serif; background: #f7f9fc; color: #333; line-height: 1.6; }
+    .container { max-width: 600px; margin: 20px auto; padding: 20px; }
+    h1 { text-align: center; color: #1a73e8; margin-bottom: 16px; }
+    p { text-align: center; color: #666; margin-bottom: 30px; }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 40px; }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      font-weight: bold;
+      color: #1a73e8;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      cursor: pointer;
+    }
+    .card:hover { background: #e8f0fe; transform: translateY(-2px); }
+    footer { text-align: center; margin-top: 40px; }
+    footer a { color: #1a73e8; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📈 K线挑战</h1>
+    <p>基于真实历史行情的预测游戏</p>
+
+    <div class="grid">
+      <div class="card" onclick="choose('commodity_futures')">商品期货</div>
+      <div class="card" onclick="choose('a_share')">A股股票</div>
+      <div class="card" onclick="choose('h_share')">港股股票</div>
+      <div class="card" onclick="choose('us_stock')">美股股票</div>
+      <div class="card" onclick="choose('crypto')">加密货币</div>
+    </div>
+
+    <footer>
+      <a href="/leaderboard">🏆 查看排行榜</a><br>
+      <a href="/my-games">🔍 我的战绩</a>
+    </footer>
+  </div>
+
+  <script>
+    function choose(cat) {
+      const mode = prompt("选择模式：\n输入 1 → 日间（日K）\n输入 2 → 日内（分钟图）");
+      if (mode === '1') {
+        go(`/game?c=${cat}&t=daily`);
+      } else if (mode === '2') {
+        go(`/game?c=${cat}&t=intraday`);
+      }
+    }
+    function go(url) {
+      window.location.href = url;
+    }
+
+    // 持久化用户ID
+    function getOrCreateUserId() {
+      let uid = localStorage.getItem("user_id");
+      if (!uid) {
+        const parts = [
+          navigator.userAgent,
+          screen.width + "x" + screen.height,
+          new Date().getTimezoneOffset(),
+          navigator.language,
+          Math.random()
+        ].join("|");
+        let hash = 0;
+        for (let i = 0; i < parts.length; i++) {
+          const char = parts.charCodeAt(i);
+          hash = ((hash << 5) - hash) + char;
+        }
+        uid = "uid_" + Math.abs(hash).toString(36).substr(0, 16);
+        localStorage.setItem("user_id", uid);
+      }
+      return uid;
+    }
+    getOrCreateUserId();
+  </script>
+</body>
+</html>
+
