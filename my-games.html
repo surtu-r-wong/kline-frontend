@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>我的战绩 - K线挑战</title>
+  <link rel="stylesheet" href="/static/assets/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>📜 我的战绩</h1>
+    <p>回顾你的每一局预测与市场真实走势</p>
+
+    <div id="loading">加载中...</div>
+    <div id="games-list" style="display:none;"></div>
+
+    <button onclick="generateShareImage()" style="width:100%;margin:20px 0;">
+      📸 生成分享图
+    </button>
+
+    <footer>
+      <a href="/">🏠 返回首页</a> | 
+      <a href="/leaderboard">🏆 排行榜</a>
+    </footer>
+  </div>
+
+  <script>
+    // 获取用户ID（基于设备指纹）
+    function getOrCreateUserId() {
+      let uid = localStorage.getItem("user_id");
+      if (!uid) {
+        const parts = [
+          navigator.userAgent,
+          screen.width + "x" + screen.height,
+          navigator.language,
+          new Date().getTimezoneOffset(),
+          Math.random()
+        ].join("|");
+        let hash = 0;
+        for (let i = 0; i < parts.length; i++) {
+          const char = parts.charCodeAt(i);
+          hash = ((hash << 5) - hash) + char;
+        }
+        uid = "uid_" + Math.abs(hash).toString(36).substr(0, 16);
+        localStorage.setItem("user_id", uid);
+      }
+      return uid;
+    }
+
+    const USER_ID = getOrCreateUserId();
+    const USER_NICKNAME = localStorage.getItem("user_nickname") || "玩家";
+
+    // 格式化时间显示
+    function formatTime(dateTimeStr) {
+      return dateTimeStr.replace('T', ' ').slice(0, 16);
+    }
+
+    // 加载我的游戏记录
+    async function loadMyGames() {
+      try {
+        const res = await fetch(`/api/my-games?user_id=${USER_ID}`);
+        const data = await res.json();
+        const container = document.getElementById("games-list");
+        const loading = document.getElementById("loading");
+
+        if (!data.data || data.data.length === 0) {
+          container.innerHTML = "<p style='text-align:center;color:#999;'>暂无游戏记录</p>";
+        } else {
+          container.innerHTML = data.data.map(g => `
+            <div style="background:white;padding:15px;border-radius:10px;margin:10px 0;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+              <strong>${g.asset_name} (${g.symbol})</strong> 
+              <span style="color:#999;font-size:12px;">${formatTime(g.played_at)}</span><br>
+              <small>${g.timeframe === 'daily' ? '日间' : '日内'} • ${g.category_text}</small><br><br>
+              
+              <div style="font-size:14px;line-height:1.5;">
+                🔹 下单点位：<strong>${g.entry_price.toFixed(2)}</strong><br>
+                🔹 实际走势：<strong style="color:${g.direction==='up'?'#26a69a':'#ef5350'};">
+                  ${g.direction==='up'?'上涨':'下跌'}
+                </strong> (${g.return_pct > 0 ? '+' : ''}${g.return_pct.toFixed(2)}%)<br>
+                🔹 你的选择：<strong>${g.player_choice === 'long' ? '📈 做多' : '📉 做空'}</strong> → 
+                <strong style="color:${g.is_correct ? '#26a69a' : '#ef5350'};">
+                  ${g.is_correct ? '正确 ✅' : '错误 ❌'}
+                </strong>
+              </div>
+            </div>
+          `).join('');
+        }
+        loading.style.display = "none";
+        container.style.display = "block";
+      } catch (e) {
+        console.error("加载战绩失败:", e);
+        alert("数据加载失败，请检查网络或后端是否运行。");
+      }
+    }
+
+    // 生成分享图片
+    function generateShareImage() {
+      const container = document.createElement('div');
+      container.style.cssText = `
+        position: fixed; top: -9999px; width: 375px; background: white; 
+        font-family: -apple-system, sans-serif; padding: 20px; border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2); font-size: 14px;
+      `;
+
+      const now = new Date().toLocaleDateString('zh-CN');
+      const games = document.querySelectorAll("#games-list > div");
+      const recentHtml = Array.from(games).slice(0, 3).map(el => el.outerHTML).join('');
+
+      container.innerHTML = `
+        <h3 style="color:#1a73e8;text-align:center;">K线挑战 · 我的战绩</h3>
+        <p style="color:#666;text-align:center;">🎮 ${USER_NICKNAME}</p>
+        <hr style="border:1px solid #eee;margin:10px 0;">
+        <p><strong>📊 最近战绩</strong>（截至 ${now}）</p>
+        ${recentHtml}
+        <p style="color:#999;font-size:12px;margin-top:20px;text-align:center;">
+          数据来自真实历史行情<br>
+          #K线挑战 #投资思维训练
+        </p>
+      `;
+
+      document.body.appendChild(container);
+
+      setTimeout(() => {
+        html2canvas(container, { 
+          backgroundColor: 'white',
+          scale: 2,
+          useCORS: true,
+          logging: false
+        }).then(canvas => {
+          const img = canvas.toDataURL("image/png");
+          const link = document.createElement("a");
+          link.download = `kline-challenge-${Date.now()}.png`;
+          link.href = img;
+          link.click();
+          document.body.removeChild(container);
+        }).catch(err => {
+          console.error("截图失败:", err);
+          alert("生成图片失败，请稍后再试。");
+          document.body.removeChild(container);
+        });
+      }, 500);
+    }
+
+    // 页面加载时获取战绩
+    window.onload = loadMyGames;
+  </script>
+</body>
+</html>
+
