@@ -1,0 +1,174 @@
+/* 全局重置 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: #f7f9fc;
+  color: #333;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  min-height: 100vh;
+}
+
+h1, h2, h3 {
+  text-align: center;
+  color: #1a73e8;
+  margin-bottom: 16px;
+}
+
+p {
+  text-align: center;
+  color: #666;
+  margin-bottom: 30px;
+}
+
+/* 卡片网格 */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin-bottom: 40px;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  font-weight: bold;
+  color: #1a73e8;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  cursor: pointer;
+}
+
+.card:hover {
+  background: #e8f0fe;
+  transform: translateY(-2px);
+}
+
+/* 图表区域 */
+#chart {
+  height: 300px;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin: 15px 0;
+}
+
+/* 按钮组 */
+#choices {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin: 20px 0;
+}
+
+button {
+  padding: 12px 24px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  flex: 1;
+  max-width: 45%;
+  font-weight: bold;
+}
+
+button:first-child {
+  background: #26a69a;
+  color: white;
+}
+
+button:last-child {
+  background: #ef5350;
+  color: white;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+/* 结果弹框 */
+.result-box {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  text-align: center;
+  margin-top: 10px;
+}
+
+.result-box p {
+  color: #555;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+/* 排行榜表格 */
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 14px;
+}
+
+.leaderboard-table th {
+  background: #1a73e8;
+  color: white;
+  padding: 10px;
+  text-align: left;
+}
+
+.leaderboard-table td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.leaderboard-table tr:nth-child(even) {
+  background: #f8f9fa;
+}
+
+/* 标签页导航 */
+.tab-nav {
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+  margin: 10px 0 20px;
+}
+
+.tab-btn {
+  padding: 8px 16px;
+  border: none;
+  background: #e0e0e0;
+  border-radius: 6px;
+  white-space: nowrap;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.tab-btn.active {
+  background: #1a73e8;
+  color: white;
+}
+
+/* 页脚链接 */
+footer {
+  text-align: center;
+  margin-top: 40px;
+}
+
+footer a {
+  color: #1a73e8;
+  text-decoration: none;
+  margin: 0 10px;
+}
+
