@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>排行榜 - K线挑战</title>
+  <link rel="stylesheet" href="/static/assets/style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>🏆 排行榜</h1>
+    <p>基于真实历史行情的预测挑战</p>
+
+    <!-- 标签页导航 -->
+    <div class="tab-nav" id="tabs">
+      <button class="tab-btn active" onclick="showTab('total')">总榜</button>
+      <button class="tab-btn" onclick="showTab('daily')">日间榜</button>
+      <button class="tab-btn" onclick="showTab('intraday')">日内榜</button>
+      <button class="tab-btn" onclick="showTab('commodity_futures')">商品期货</button>
+      <button class="tab-btn" onclick="showTab('a_share')">A股股票</button>
+      <button class="tab-btn" onclick="showTab('h_share')">港股股票</button>
+      <button class="tab-btn" onclick="showTab('us_stock')">美股股票</button>
+      <button class="tab-btn" onclick="showTab('crypto')">加密货币</button>
+      <button class="tab-btn" onclick="showTab('weekly')">周榜</button>
+      <button class="tab-btn" onclick="showTab('monthly')">月榜</button>
+    </div>
+
+    <!-- 表格容器 -->
+    <div id="table-container">
+      <table class="leaderboard-table">
+        <thead>
+          <tr>
+            <th>排名</th>
+            <th>昵称</th>
+            <th>正确次数</th>
+            <th>正确率</th>
+            <th>总局数</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard-body">
+          <tr><td colspan="5">加载中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <footer>
+      <a href="/">🏠 返回首页</a> | 
+      <a href="/my-games">🔍 我的战绩</a>
+    </footer>
+  </div>
+
+  <script>
+    // 定义所有标签页配置
+    const TABS = {
+      total: { 
+        category: null, 
+        timeframe: null, 
+        title: "总榜", 
+        api: "/api/leaderboard" 
+      },
+      daily: { 
+        category: null, 
+        timeframe: 'daily', 
+        title: "日间榜", 
+        api: "/api/leaderboard" 
+      },
+      intraday: { 
+        category: null, 
+        timeframe: 'intraday', 
+        title: "日内榜", 
+        api: "/api/leaderboard" 
+      },
+      commodity_futures: { 
+        category: 'commodity_futures', 
+        timeframe: null, 
+        title: "商品期货", 
+        api: "/api/leaderboard" 
+      },
+      a_share: { 
+        category: 'a_share', 
+        timeframe: null, 
+        title: "A股股票", 
+        api: "/api/leaderboard" 
+      },
+      h_share: { 
+        category: 'h_share', 
+        timeframe: null, 
+        title: "港股股票", 
+        api: "/api/leaderboard" 
+      },
+      us_stock: { 
+        category: 'us_stock', 
+        timeframe: null, 
+        title: "美股股票", 
+        api: "/api/leaderboard" 
+      },
+      crypto: { 
+        category: 'crypto', 
+        timeframe: null, 
+        title: "加密货币", 
+        api: "/api/leaderboard" 
+      },
+      weekly: { 
+        category: null, 
+        timeframe: null, 
+        title: "周榜", 
+        api: "/api/leaderboard/weekly" 
+      },
+      monthly: { 
+        category: null, 
+        timeframe: null, 
+        title: "月榜", 
+        api: "/api/leaderboard/monthly" 
+      }
+    };
+
+    /**
+     * 加载排行榜数据
+     */
+    async function loadLeaderboard(config) {
+      const tbody = document.getElementById("leaderboard-body");
+      tbody.innerHTML = `<tr><td colspan="5">加载中...</td></tr>`;
+
+      try {
+        // 构建查询参数
+        const params = new URLSearchParams();
+        if (config.category) params.append('category', config.category);
+        if (config.timeframe) params.append('timeframe', config.timeframe);
+
+        const url = config.api + (params.toString() ? '?' + params.toString() : '');
+        const res = await fetch(url);
+        
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const data = await res.json();
+
+        if (!data.data || data.data.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5">暂无数据</td></tr>`;
+          return;
+        }
+
+        // 渲染表格
+        tbody.innerHTML = data.data.map((row, i) => {
+          const accuracy = row.accuracy !== undefined ? `${parseFloat(row.accuracy).toFixed(1)}%` : '--';
+          const totalGames = row.total_games || row.totalGames || '未知';
+          return `
+            <tr>
+              <td><strong>${i + 1}</strong></td>
+              <td>${row.nickname || '匿名玩家'}</td>
+              <td><strong style="color:#1a73e8;">${row.correct_count || row.correctCount || 0}</strong></td>
+              <td>${accuracy}</td>
+              <td>${totalGames}</td>
+            </tr>
+          `;
+        }).join('');
+
+      } catch (e) {
+        console.error("加载排行榜失败:", e);
+        tbody.innerHTML = `<tr><td colspan="5">加载失败，请稍后重试</td></tr>`;
+      }
+    }
+
+    /**
+     * 切换标签页
+     */
+    function showTab(tabKey) {
+      const config = TABS[tabKey];
+      if (!config) return;
+
+      // 更新按钮状态
+      document.querySelectorAll(".tab-btn").forEach(btn => 
+        btn.classList.remove("active")
+      );
+      event.target.classList.add("active");
+
+      // 加载数据
+      loadLeaderboard(config);
+    }
+
+    // 页面加载时默认显示“总榜”
+    window.onload = () => {
+      showTab('total');
+    };
+  </script>
+</body>
+</html>
+
